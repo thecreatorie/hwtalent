@@ -1,4 +1,4 @@
-/* HW Talent — rentals: choose the pieces, describe the night, see the figure, sign.
+/* HW Talent — rentals: choose the pieces, describe the event, see the figure, sign.
    The catalog and its prices are in rental-data.js. The rules and the agreement are in booking-core.js.
 
    ONE SETTING:

@@ -29,6 +29,7 @@ At the top of `assets/js/rentals.js`:
 | File | Page |
 | --- | --- |
 | `index.html` | Home: the tent of light, the three-beat story (driven by the scroll), the index of disciplines, the services, the LED strip with logo upload, where we work, questions |
+| `events.html` | What we bring by kind of event: performers, equipment and extras for six event types, each opening the consultation with that type chosen |
 | `acts.html` | Acts: every discipline, plus a photo gallery that appears once photos are listed |
 | `costumes.html` | Costumes: styles, plus a photo gallery that appears once photos are listed |
 | `bespoke.html` | Custom branding and LED programming, with the LED strip and logo upload |
