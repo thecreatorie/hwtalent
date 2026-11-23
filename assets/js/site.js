@@ -191,12 +191,12 @@
       return right;
     }
     function side(above) {
-      var top = 100, bottom = H * (P ? 0.5 : 0.6), cx = P ? 0 : A * 0.5;
+      var top = 100, bottom = H * (P ? 0.5 : 0.6), cx = P ? 0 : A * 0.5, labRight = 0;
       if (zoneEl) {
         var zb = zoneEl.getBoundingClientRect(), w = zoneEl.querySelector(".wrap"), first = w && w.firstElementChild, h1 = zoneEl.querySelector("h1");
         if (first) bottom = first.getBoundingClientRect().top - zb.top - 26;
         /* a short label leaves the right-hand side free all the way down to the headline */
-        if (first && h1 && !P && first !== h1 && first.getBoundingClientRect().right < W * 0.5 && !h1.contains(first)) bottom = Math.max(bottom, h1.getBoundingClientRect().top - zb.top - 30);
+        if (first && h1 && !P && first !== h1 && first.getBoundingClientRect().right < W * 0.5 && !h1.contains(first)) { labRight = first.getBoundingClientRect().right; bottom = Math.max(bottom, h1.getBoundingClientRect().top - zb.top - 30); }
         var tr = h1 && !P ? textRight(h1) : W;
         if (!above && W - tr > W * 0.32) {
           var left = tr + 96, right = W - 56, low = Math.min(H, zb.height) - 70;
@@ -205,6 +205,12 @@
         }
       }
       var h = Math.max(110, bottom - top), R = Math.min(h / H, P ? A * 0.8 : 0.6);
+      if (!P) {
+        /* keep clear of the page edge and the scroll cue on the right, and of the label on the left */
+        if (labRight) R = Math.min(R, (W - 100 - labRight - 40) / H);
+        var cxp = Math.min(W * 0.75, W - 100 - R * H / 2);
+        cx = (cxp / W * 2 - 1) * A;
+      }
       return [cx, 1 - (top + h / 2) * 2 / H, R];
     }
 
