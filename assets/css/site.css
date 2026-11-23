@@ -547,3 +547,7 @@ a.card{text-decoration:none;color:inherit}
   .tile.in:hover .ic path{animation:none}
   .js .hero>.wrap,.js .pagehead>.wrap{transform:none;opacity:1}
 }
+
+/* the LED line sits above the strip, on one line where there is room */
+.led .lead{max-width:none}
+.led{gap:clamp(22px,2.6vw,36px)}

@@ -28,10 +28,10 @@ At the top of `assets/js/rentals.js`:
 
 | File | Page |
 | --- | --- |
-| `index.html` | Home: the tent of light, the three-beat story (driven by the scroll), the six "Only here" cards, the index of disciplines, the LED strip with logo upload, where we work, questions |
+| `index.html` | Home: the tent of light, the three-beat story (driven by the scroll), the index of disciplines, the services, the LED strip with logo upload, where we work, questions |
 | `acts.html` | Acts: every discipline, plus a photo gallery that appears once photos are listed |
 | `costumes.html` | Costumes: styles, plus a photo gallery that appears once photos are listed |
-| `bespoke.html` | Private branding (the client's mark only, never ours) and LED programming, with the LED strip and logo upload |
+| `bespoke.html` | Custom branding and LED programming, with the LED strip and logo upload |
 | `workshops.html` | Workshops |
 | `rentals.html` | Rentals: choose the pieces, describe the event, see the figure, sign the agreement |
 | `booked.html` | The page a client lands on after paying by card (used once card payment is connected) |
@@ -104,8 +104,9 @@ A visitor uploads any image and it is shown the way the props show it: reduced t
 Nothing is uploaded anywhere. The image is read and drawn in the visitor's own browser and never leaves their device.
 A flat background (white, black or any single colour) becomes the unlit panel, and ink too dark to be light is lit white.
 
-## Positioning rules for any new copy
+## Rules for any new copy
 
-- Clients carry their own brand, always. No co-branding and no HW Talent mark on the night.
-- Exclusivity: costumes made once, acts no one has seen.
-- Discretion: under NDA. Never name a client, an event or a performer.
+- It has to make sense to someone trying to book entertainment: what they can book, what it looks like, how to begin.
+- No co-branding. Custom branding means the client's logo.
+- No invented slogans, and no mention of NDAs.
+- Never name a client, an event or a performer.
