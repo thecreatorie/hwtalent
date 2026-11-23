@@ -16,7 +16,7 @@ At the top of `assets/js/site.js`:
 | --- | --- |
 | `CALENDLY_URL` | Set to `https://calendly.com/hw-talent-info/30min`. The consultation page shows this calendar. |
 | `FORM_MODE` | `"mailto"` opens the visitor's email app with the request filled in. This is the mode for GitHub Pages. |
-| `HERO_VIDEO` | Optional. Path to a silent looping film for the home hero. Empty keeps the hoop of light. |
+| `HERO_VIDEO` | Optional. Path to a silent looping film for the home hero. Empty keeps the tent of light. |
 
 At the top of `assets/js/rentals.js`:
 
@@ -28,10 +28,10 @@ At the top of `assets/js/rentals.js`:
 
 | File | Page |
 | --- | --- |
-| `index.html` | Home: the three-beat story, the photographs moving sideways, "Only here", talent, LED name demo, "Hire without stress", where we work, questions |
+| `index.html` | Home: the tent of light, the three-beat story (driven by the scroll), the six "Only here" cards, the index of disciplines, the LED strip with logo upload, where we work, questions |
 | `acts.html` | Acts: every discipline, plus a photo gallery that appears once photos are listed |
 | `costumes.html` | Costumes: styles, plus a photo gallery that appears once photos are listed |
-| `bespoke.html` | Custom branding and LED programming, with the live LED name demo |
+| `bespoke.html` | Private branding (the client's mark only, never ours) and LED programming, with the LED strip and logo upload |
 | `workshops.html` | Workshops |
 | `rentals.html` | Rentals: choose the pieces, describe the event, see the figure, sign the agreement |
 | `booked.html` | The page a client lands on after paying by card (used once card payment is connected) |
@@ -97,3 +97,15 @@ Upload this folder's contents to a repository and turn on Pages. The `CNAME` fil
 - A card processor, so clients can pay on the page.
 - Every answer in the questions sections is a draft in the brand voice.
 - More photography, with each performer's permission.
+
+## The LED strip (home and branding pages)
+
+A visitor uploads any image and it is shown the way the props show it: reduced to a bitmap 36 pixels tall, repeated along the strip, travelling as a chase.
+Nothing is uploaded anywhere. The image is read and drawn in the visitor's own browser and never leaves their device.
+A flat background (white, black or any single colour) becomes the unlit panel, and ink too dark to be light is lit white.
+
+## Positioning rules for any new copy
+
+- Clients carry their own brand, always. No co-branding and no HW Talent mark on the night.
+- Exclusivity: costumes made once, acts no one has seen.
+- Discretion: under NDA. Never name a client, an event or a performer.

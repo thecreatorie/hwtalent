@@ -1,4 +1,4 @@
-/* HW Talent — sparks, story, reel, LED demo, consultation and forms.
+/* HW Talent — sparks, story, scroll, LED strip, consultation and forms.
 
    THREE SETTINGS, all on the next few lines:
 
@@ -9,7 +9,7 @@
                  Change it to "netlify" once the site is on Netlify with Forms switched on, and requests
                  arrive in the Netlify dashboard and your inbox with no email app involved.
    HERO_VIDEO    Optional. Path to a silent looping film for the home page hero, for example
-                 "assets/video/hero.mp4". Leave empty to keep the hoop of light. */
+                 "assets/video/hero.mp4". Leave empty to keep the tent of light. */
 (function () {
   var CALENDLY_URL = "https://calendly.com/hw-talent-info/30min";
   var FORM_MODE = "mailto";
@@ -58,6 +58,25 @@
     menu.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", function () { setMenu(false); }); });
   }
 
+  /* ---------- headlines arrive word by word ---------- */
+  if (!calm) document.querySelectorAll("h2.d.rv").forEach(function (h) {
+    var n = 0;
+    (function split(node) {
+      Array.prototype.slice.call(node.childNodes).forEach(function (ch) {
+        if (ch.nodeType === 1) { split(ch); return; }
+        if (ch.nodeType !== 3) return;
+        var frag = document.createDocumentFragment();
+        ch.nodeValue.split(/(\s+)/).forEach(function (part) {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(" ")); return; }
+          var w = document.createElement("span"); w.className = "w"; w.style.setProperty("--w", n++); w.textContent = part; frag.appendChild(w);
+        });
+        node.replaceChild(frag, ch);
+      });
+    })(h);
+    h.classList.add("words");
+  });
+
   /* ---------- reveals ---------- */
   var targets = document.querySelectorAll(".rv, .up");
   if ("IntersectionObserver" in window && !calm) {
@@ -90,7 +109,7 @@
 
     var VERT = [
       "attribute vec3 a_from; attribute vec3 a_to; attribute float a_seed;",
-      "uniform float u_mix,u_t,u_asp,u_ang,u_mode,u_px,u_bright,u_heat,u_shift; uniform vec2 u_c,u_m;",
+      "uniform float u_mix,u_t,u_asp,u_ang,u_mode,u_px,u_bright,u_heat,u_shift,u_wind; uniform vec2 u_c,u_m;",
       "varying vec3 v_col; varying float v_a;",
       "void main(){",
       " float s=a_seed;",
@@ -103,14 +122,14 @@
       " float f=fract(s*91.7);",
       " p+=vec2(sin(u_t*(.2+f*.5)+s*40.),cos(u_t*(.17+f*.4)+s*23.))*mix(.045,.005,w);",
       " vec2 q=p-u_m; p+=normalize(q+vec2(1e-5))*.1*exp(-dot(q,q)*13.);",
-      " p.y+=u_shift;",
+      " p.y+=u_shift+u_wind*(.12+f*.88)*mix(1.,.2,w);",
       " gl_Position=vec4(p.x/u_asp,p.y,0.,1.);",
       " float tw=.55+.45*sin(u_t*(.7+f*2.4)+s*60.);",
       " float big=pow(fract(s*7.31),7.);",
       " gl_PointSize=(1.25+2.8*big+w*.35)*u_px;",
       " float k=fract(s*13.37);",
       " vec3 c=k<.1+.16*u_heat?vec3(.949,.071,.184):(k<.24+.5*u_heat?vec3(1.,.702,.278):vec3(.957,.965,.973));",
-      " v_col=c; v_a=u_bright*tw*mix(.42,.9,w);",
+      " v_col=c; v_a=u_bright*tw*mix(.42,.9,w)*(1.+abs(u_wind)*.9);",
       "}"
     ].join("\n");
     var FRAG = "precision mediump float;varying vec3 v_col;varying float v_a;void main(){float d=length(gl_PointCoord-.5);gl_FragColor=vec4(v_col*smoothstep(.5,.18,d)*v_a,1.);}";
@@ -136,7 +155,7 @@
     var bFrom = buffer("a_from", from, 3, gl.DYNAMIC_DRAW), bTo = buffer("a_to", to, 3, gl.DYNAMIC_DRAW);
     function upload(b, data) { gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferSubData(gl.ARRAY_BUFFER, 0, data); }
     var U = {};
-    ["mix", "t", "asp", "ang", "mode", "px", "bright", "heat", "shift", "c", "m"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, "u_" + n); });
+    ["mix", "t", "asp", "ang", "mode", "px", "bright", "heat", "shift", "wind", "c", "m"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, "u_" + n); });
 
     var A = 1, P = false, W = 0, H = 0;
     /* a small repeatable random, so a shape is the same shape every time it forms */
@@ -176,6 +195,8 @@
       if (zoneEl) {
         var zb = zoneEl.getBoundingClientRect(), w = zoneEl.querySelector(".wrap"), first = w && w.firstElementChild, h1 = zoneEl.querySelector("h1");
         if (first) bottom = first.getBoundingClientRect().top - zb.top - 26;
+        /* a short label leaves the right-hand side free all the way down to the headline */
+        if (first && h1 && !P && first !== h1 && first.getBoundingClientRect().right < W * 0.5 && !h1.contains(first)) bottom = Math.max(bottom, h1.getBoundingClientRect().top - zb.top - 30);
         var tr = h1 && !P ? textRight(h1) : W;
         if (!above && W - tr > W * 0.32) {
           var left = tr + 96, right = W - 56, low = Math.min(H, zb.height) - 70;
@@ -199,6 +220,32 @@
 
     var FORMS = {
       embers: { bright: 0.5, heat: 0.3, mode: 2, spin: 0, build: function (out, r) { dust(N, out, 0, r, 0.3); return [0, 0]; } },
+      /* the big top, drawn in light */
+      tent: { bright: 1, heat: 0.3, mode: 2, spin: 0, build: function (out, r) {
+        var s = side(), S = s[2] * 0.98, cy = s[1], k;
+        function X(x) { return s[0] + (x - 60) / 60 * S; } function Y(y) { return cy - (y - 60) / 60 * S; }
+        function L(a, b, c, d) { return line(X(a), Y(b), X(c), Y(d)); }
+        function Q(x0, y0, xc, yc, x1, y1) {
+          var len = (Math.hypot(x1 - x0, y1 - y0) + Math.hypot(xc - x0, yc - y0) + Math.hypot(x1 - xc, y1 - yc)) / 2 * S / 60;
+          return curve(len, function (t) { var u = 1 - t; return [X(u * u * x0 + 2 * u * t * xc + t * t * x1), Y(u * u * y0 + 2 * u * t * yc + t * t * y1)]; });
+        }
+        function eave(x) { return 58 + 7 * Math.sin(Math.PI * (x - 10) / 100); }
+        function ground(x) { return 100 + 7 * Math.sin(Math.PI * (x - 10) / 100); }
+        /* king pole and pennant */
+        var xs = [10, 26, 43, 60, 77, 94, 110], sh = [L(60, 24, 60, 6), L(60, 6, 78, 10.5), L(78, 10.5, 60, 15)];
+        for (k = 0; k < xs.length; k++) {
+          var x = xs[k], ey = eave(x), seam = function () { return Q(60, 24, 60 + (x - 60) * 0.42, 24 + (ey - 24) * 0.8, x, ey); };
+          sh.push(seam());                                   /* roof seams sag from the pole to the eave */
+          if (k === 0 || k === 6) sh.push(seam(), L(x, ey, x, ground(x)));
+          if (x !== 60) sh.push(L(x, ey, x, ground(x)));     /* walls, with the middle left open */
+          if (k < 6) sh.push(Q(x, ey, (x + xs[k + 1]) / 2, (ey + eave(xs[k + 1])) / 2 + 8, xs[k + 1], eave(xs[k + 1])));   /* the scalloped valance */
+        }
+        sh.push(Q(10, 58, 60, 72, 110, 58));                 /* the eave */
+        sh.push(Q(60, 68, 51, 86, 46, ground(46)), Q(60, 68, 69, 86, 74, ground(74)));   /* the way in: two drapes, parting */
+        sh.push(Q(10, 100, 60, 114, 110, 100), L(10, 58, 0, 101), L(110, 58, 120, 101)); /* ground and guy lines */
+        var n = Math.floor(N * 0.8), o = trace(sh, n, out, 0, 0.005, r);
+        dust(N - n, out, o, r, 0.5); return [s[0], cy];
+      } },
       /* an aerial hoop, turning on its hang point */
       ring: { bright: 1, heat: 0.3, mode: 1, spin: 0.32, build: function (out, r) {
         var s = side(), cx = s[0], cy = s[1], R = s[2], n1 = Math.floor(N * 0.58), n2 = Math.floor(N * 0.12), n3 = Math.floor(N * 0.05);
@@ -267,6 +314,7 @@
     };
 
     var cur = null, name = "", centre = [0, 0], mix = 1, tSwitch = 0, ang = 0, bright = 0, heat = 0.3, shift = 0, shiftTo = 0;
+    var wind = 0, lastSy = window.scrollY;
     var zoneEl = null, mouse = [9, 9], mouseTo = [9, 9], now = 0, t0 = performance.now(), sections = [], story = document.querySelector(".story");
 
     function size() {
@@ -321,7 +369,7 @@
     function draw() {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.uniform1f(U.mix, mix); gl.uniform1f(U.t, now); gl.uniform1f(U.ang, ang); gl.uniform1f(U.mode, cur.mode);
-      gl.uniform1f(U.bright, bright); gl.uniform1f(U.heat, heat); gl.uniform1f(U.shift, shift);
+      gl.uniform1f(U.bright, bright); gl.uniform1f(U.heat, heat); gl.uniform1f(U.shift, shift); gl.uniform1f(U.wind, wind);
       gl.uniform2f(U.c, centre[0], centre[1]); gl.uniform2f(U.m, mouse[0], mouse[1]);
       gl.drawArrays(gl.POINTS, 0, N);
     }
@@ -334,6 +382,8 @@
       ang = cur.spin * (now - tSwitch);
       bright += (cur.bright - bright) * 0.04; heat += (cur.heat - heat) * 0.04; shift += (shiftTo - shift) * 0.08;
       mouse[0] += (mouseTo[0] - mouse[0]) * 0.08; mouse[1] += (mouseTo[1] - mouse[1]) * 0.08;
+      /* the field has depth: scroll, and the near sparks travel further than the far ones, then settle */
+      var sy = window.scrollY; wind += (clamp((sy - lastSy) / H * 9, -0.8, 0.8) - wind) * 0.1; lastSy = sy;
       draw();
       requestAnimationFrame(frame);
     }
@@ -360,127 +410,237 @@
     });
   })();
 
-  /* ---------- story: three beats, pinned ---------- */
+  /* ---------- scroll: things that move with the page itself, not just when it arrives ---------- */
+  var scrubs = [];
+  function scrub(el, read, apply, ease) { if (el) scrubs.push({ el: el, read: read, apply: apply, ease: ease || 0.14, p: -1, last: -9, near: true }); }
+  function through(el) { var b = el.getBoundingClientRect(), vh = window.innerHeight; return clamp((vh - b.top) / (vh + b.height), 0, 1); }
+  function eio(t) { return t * t * (3 - 2 * t); }
+
   var storyEl = document.querySelector(".story");
-  if (storyEl) {
-    if (calm) storyEl.classList.add("flat");
-    else {
-      var beats = storyEl.querySelectorAll(".beat"), dots = storyEl.querySelectorAll(".dots i"), shown = -1;
-      var beat = function () {
-        var b = storyEl.getBoundingClientRect(), span = b.height - window.innerHeight;
-        var p = span > 0 ? clamp(-b.top / span, 0, 1) : 0, idx = p < 0.3 ? 0 : (p < 0.66 ? 1 : 2);
-        if (idx !== shown) {
-          shown = idx;
-          beats.forEach(function (el, n) { el.classList.toggle("on", n === idx); });
-          dots.forEach(function (el, n) { el.classList.toggle("on", n === idx); });
-        }
-      };
-      window.addEventListener("scroll", beat, { passive: true }); beat();
-    }
-  }
-
-  /* ---------- the work: the page scrolls down, the photographs move sideways ---------- */
-  document.querySelectorAll(".hs").forEach(function (hs) {
-    var track = hs.querySelector(".track"), bar = hs.querySelector(".bar i"), dist = 0, on = false;
-    var slide = function () {
-      if (!on) return;
-      var p = dist > 0 ? clamp(-hs.getBoundingClientRect().top / dist, 0, 1) : 0;
-      track.style.transform = "translate3d(" + (-p * dist) + "px,0,0)";
-      if (bar) bar.style.transform = "scaleX(" + p + ")";
-    };
-    var measure = function () {
-      on = !calm && window.innerWidth >= 900 && window.innerHeight >= 560;
-      hs.classList.toggle("flat", !on);
-      if (!on) { hs.style.height = ""; track.style.transform = ""; return; }
-      dist = Math.max(0, track.scrollWidth - window.innerWidth);
-      hs.style.height = (window.innerHeight + dist) + "px";
-      slide();
-    };
-    window.addEventListener("scroll", slide, { passive: true });
-    var hr; window.addEventListener("resize", function () { clearTimeout(hr); hr = setTimeout(measure, 150); });
-    measure(); window.addEventListener("load", measure);
-  });
-
-  /* ---------- LED demo: type a name, pick a program ---------- */
-  var FONT = {
-    A: "01110 10001 10001 11111 10001 10001 10001", B: "11110 10001 10001 11110 10001 10001 11110", C: "01110 10001 10000 10000 10000 10001 01110",
-    D: "11110 10001 10001 10001 10001 10001 11110", E: "11111 10000 10000 11110 10000 10000 11111", F: "11111 10000 10000 11110 10000 10000 10000",
-    G: "01110 10001 10000 10111 10001 10001 01111", H: "10001 10001 10001 11111 10001 10001 10001", I: "01110 00100 00100 00100 00100 00100 01110",
-    J: "00111 00010 00010 00010 00010 10010 01100", K: "10001 10010 10100 11000 10100 10010 10001", L: "10000 10000 10000 10000 10000 10000 11111",
-    M: "10001 11011 10101 10101 10001 10001 10001", N: "10001 11001 10101 10011 10001 10001 10001", O: "01110 10001 10001 10001 10001 10001 01110",
-    P: "11110 10001 10001 11110 10000 10000 10000", Q: "01110 10001 10001 10001 10101 10010 01101", R: "11110 10001 10001 11110 10100 10010 10001",
-    S: "01111 10000 10000 01110 00001 00001 11110", T: "11111 00100 00100 00100 00100 00100 00100", U: "10001 10001 10001 10001 10001 10001 01110",
-    V: "10001 10001 10001 10001 10001 01010 00100", W: "10001 10001 10001 10101 10101 10101 01010", X: "10001 10001 01010 00100 01010 10001 10001",
-    Y: "10001 10001 01010 00100 00100 00100 00100", Z: "11111 00001 00010 00100 01000 10000 11111",
-    0: "01110 10001 10011 10101 11001 10001 01110", 1: "00100 01100 00100 00100 00100 00100 01110", 2: "01110 10001 00001 00010 00100 01000 11111",
-    3: "11110 00001 00001 01110 00001 00001 11110", 4: "00010 00110 01010 10010 11111 00010 00010", 5: "11111 10000 11110 00001 00001 10001 01110",
-    6: "00110 01000 10000 11110 10001 10001 01110", 7: "11111 00001 00010 00100 01000 01000 01000", 8: "01110 10001 10001 01110 10001 10001 01110",
-    9: "01110 10001 10001 01111 00001 00010 01100", "&": "01100 10010 10100 01000 10101 10010 01101"
-  };
-  var INK = [[244, 246, 248], [255, 179, 71], [242, 18, 47]];
-  function led(canvas, input, buttons) {
-    var ctx = canvas.getContext("2d"), dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var COLS = 78, ROWS = 11, W = 0, H = 0, pitch = 0, lit = {}, born = {}, t0 = null, program = "chase";
-    function layout() {
-      W = canvas.getBoundingClientRect().width; pitch = W / COLS; H = pitch * ROWS;
-      canvas.style.height = H + "px";
-      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    function compose(now) {
-      var text = (input.value || input.getAttribute("placeholder") || "").toUpperCase().slice(0, 13);
-      var cols = [];
-      for (var i = 0; i < text.length; i++) {
-        var g = FONT[text[i]], rows = g ? g.split(" ") : null;
-        for (var c = 0; c < 5; c++) { var col = []; for (var r = 0; r < 7; r++) col.push(rows ? rows[r][c] === "1" : false); cols.push(col); }
-        if (i < text.length - 1) cols.push([false, false, false, false, false, false, false]);
-      }
-      var next = {}, off = Math.floor((COLS - cols.length) / 2);
-      cols.forEach(function (col, x) { col.forEach(function (on, y) { if (on) next[(x + off) + "," + (y + 2)] = 1; }); });
-      Object.keys(next).forEach(function (key) { if (!lit[key]) born[key] = now || 0; });
-      lit = next;
-    }
-    function draw(now) {
-      if (t0 === null) t0 = now;
-      var t = calm ? 0.8 : (now - t0) / 1000;
-      /* one colour at a time, the way a programmed prop runs: white, then amber, then red */
-      var ink = INK[Math.floor(t / 3.2) % 3], head = ((t / 3.2) % 1) * (COLS + 24) - 12;
-      ctx.clearRect(0, 0, W, H);
-      for (var x = 0; x < COLS; x++) {
-        for (var y = 0; y < ROWS; y++) {
-          var key = x + "," + y, lon = lit[key];
-          var cx = x * pitch + pitch / 2, cy = y * pitch + pitch / 2;
-          ctx.beginPath();
-          if (lon) {
-            var age = calm ? 1 : Math.min(1, (now - (born[key] || 0)) / 380), lvl = 1;
-            if (program === "chase") lvl = x < head ? (head - x < 7 ? 1 : 0.62) : 0.14;
-            else if (program === "pulse") lvl = 0.3 + 0.7 * Math.pow(0.5 + 0.5 * Math.sin(t * 2.6), 2);
-            else if (program === "sparkle") lvl = 0.25 + 0.75 * Math.pow(0.5 + 0.5 * Math.sin(t * 5 + x * 12.9898 + y * 78.233), 6);
-            if (calm) lvl = 1;
-            ctx.arc(cx, cy, pitch * (0.22 + 0.19 * age), 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(" + ink[0] + "," + ink[1] + "," + ink[2] + "," + (0.12 + 0.88 * lvl) + ")";
-          } else {
-            ctx.arc(cx, cy, pitch * 0.11, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(244,246,248,.1)";
-          }
-          ctx.fill();
-        }
-      }
-      if (!calm) requestAnimationFrame(draw);
-    }
-    layout(); compose(0); requestAnimationFrame(draw);
-    input.addEventListener("input", function () { compose(performance.now()); if (calm) requestAnimationFrame(draw); });
-    buttons.forEach(function (b) {
-      b.addEventListener("click", function () {
-        program = b.getAttribute("data-program");
-        buttons.forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
-      });
+  if (storyEl && calm) storyEl.classList.add("flat");
+  if (!calm) {
+    /* the opening words recede as you leave them */
+    scrub(document.querySelector(".hero, .pagehead"),
+      function (el) { var b = el.getBoundingClientRect(); return clamp(-b.top / Math.max(1, b.height), 0, 1); },
+      function (el, p) { el.style.setProperty("--out", p.toFixed(4)); });
+    /* the red panel opens from a frame to the full width */
+    document.querySelectorAll(".panel").forEach(function (pn) {
+      scrub(pn, function (el) { var b = el.getBoundingClientRect(), vh = window.innerHeight; return clamp((vh - b.top) / (vh * 0.8), 0, 1); },
+        function (el, p) { el.style.setProperty("--open", eio(p).toFixed(4)); });
     });
-    var again;
-    window.addEventListener("resize", function () { clearTimeout(again); again = setTimeout(function () { layout(); if (calm) requestAnimationFrame(draw); }, 150); });
+    /* headlines drift a little across the page; registration marks turn */
+    document.querySelectorAll("h2.d.words, .idx").forEach(function (h) {
+      scrub(h, through, function (el, p) { el.style.setProperty("--p", p.toFixed(4)); });
+    });
+    /* the story: each word arrives, holds and leaves on the scroll, and one is gone before the next begins */
+    if (storyEl) {
+      var beats = storyEl.querySelectorAll(".beat"), rail = storyEl.querySelectorAll(".rail span"), CUT = [0, 0.3, 0.66, 1];
+      scrub(storyEl, function (el) { var b = el.getBoundingClientRect(), span = b.height - window.innerHeight; return span > 0 ? clamp(-b.top / span, 0, 1) : 0; },
+        function (el, p) {
+          beats.forEach(function (bt, n) {
+            var q = clamp((p - CUT[n]) / (CUT[n + 1] - CUT[n]), 0, 1);
+            var e = n === 0 ? 1 : eio(clamp(q / 0.3, 0, 1)), o = n === 2 ? 0 : eio(clamp((q - 0.76) / 0.24, 0, 1));
+            bt.style.opacity = (e * (1 - o)).toFixed(3);
+            bt.style.transform = "translate3d(0," + ((1 - e) * 70 - o * 70).toFixed(1) + "px,0) scale(" + (0.92 + 0.08 * e + 0.06 * o).toFixed(4) + ")";
+            bt.style.filter = e * (1 - o) > 0.995 ? "none" : "blur(" + ((1 - e) * 14 + o * 14).toFixed(1) + "px)";
+            if (rail[n]) { rail[n].classList.toggle("on", p >= CUT[n] && (n === 2 || p < CUT[n + 1])); rail[n].firstElementChild.style.transform = "scaleX(" + q.toFixed(4) + ")"; }
+          });
+        }, 0.16);
+    }
+    if ("IntersectionObserver" in window) {
+      var nearIO = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { for (var k = 0; k < scrubs.length; k++) if (scrubs[k].el === en.target) scrubs[k].near = en.isIntersecting; });
+      }, { rootMargin: "25% 0px 25% 0px" });
+      scrubs.forEach(function (sc) { nearIO.observe(sc.el); });
+    }
+    (function tick() {
+      for (var k = 0; k < scrubs.length; k++) {
+        var sc = scrubs[k]; if (!sc.near) continue;
+        var t = sc.read(sc.el); sc.p = sc.p < 0 ? t : sc.p + (t - sc.p) * sc.ease;
+        if (Math.abs(sc.p - t) < 0.0004) sc.p = t;
+        if (Math.abs(sc.p - sc.last) > 0.0003) { sc.apply(sc.el, sc.p); sc.last = sc.p; }
+      }
+      requestAnimationFrame(tick);
+    })();
+    /* cards lean toward the pointer */
+    if (window.matchMedia("(hover:hover) and (pointer:fine)").matches) {
+      document.querySelectorAll(".cards .card").forEach(function (cd) {
+        cd.addEventListener("pointermove", function (e) {
+          var b = cd.getBoundingClientRect();
+          cd.style.setProperty("--ry", (((e.clientX - b.left) / b.width - 0.5) * 7).toFixed(2) + "deg");
+          cd.style.setProperty("--rx", ((0.5 - (e.clientY - b.top) / b.height) * 7).toFixed(2) + "deg");
+        });
+        cd.addEventListener("pointerleave", function () { cd.style.setProperty("--rx", "0deg"); cd.style.setProperty("--ry", "0deg"); });
+      });
+    }
   }
-  var ledCanvas = document.querySelector("canvas[data-led]"), ledInput = document.querySelector("#led-text");
-  if (ledCanvas && ledInput) led(ledCanvas, ledInput, Array.prototype.slice.call(document.querySelectorAll("[data-program]")));
+  /* once a card or tile has arrived, its stagger is spent: rollovers answer at once */
+  document.querySelectorAll(".card, .tile").forEach(function (el) {
+    el.addEventListener("transitionend", function (e) { if (e.target === el && e.propertyName === "transform") el.classList.add("done"); });
+  });
+  /* section rules draw themselves across the page */
+  var rules = document.querySelectorAll(".sec.rule");
+  if ("IntersectionObserver" in window && !calm) {
+    var ruleIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("lit"); ruleIO.unobserve(en.target); } });
+    }, { rootMargin: "0px 0px -8% 0px" });
+    rules.forEach(function (r) { ruleIO.observe(r); });
+  } else rules.forEach(function (r) { r.classList.add("lit"); });
+
+  /* ---------- LED strip: 36 pixels tall, as on the props. Any image becomes a 36-pixel-tall bitmap and repeats along the strip. ---------- */
+  var INK = [[244, 246, 248], [255, 179, 71], [242, 18, 47]];
+  function ledStrip(box) {
+    var canvas = box.querySelector("canvas[data-led]"), pick = box.querySelector("[data-led-file]"), label = box.querySelector("[data-led-name]"), say = box.querySelector("[data-led-status]");
+    var ctx = canvas.getContext("2d", { willReadFrequently: true }), low = document.createElement("canvas"), lctx = low.getContext("2d", { willReadFrequently: true }), mask = document.createElement("canvas");
+    var ROWS = 36, SPEED = 18, PASS = 3.6, OFF = [22, 23, 25], cols = 0, pix = null, art = null, shown = null, custom = false, t0 = null, visible = true, sxs = [], lvls = [];
+    function sheet(w, h) { var c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+
+    function layout() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2), W = canvas.parentNode.getBoundingClientRect().width;
+      if (!W) return;
+      var pitch = clamp(W / 330, 3, 6); cols = Math.max(24, Math.floor(W / pitch)); pitch = W / cols;
+      SPEED = cols < 220 ? 34 : 18;   /* a narrow strip shows a few letters at a time, so it travels faster */
+      canvas.style.height = (pitch * ROWS) + "px";
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(pitch * ROWS * dpr);
+      low.width = cols; low.height = ROWS; pix = lctx.createImageData(cols, ROWS);
+      /* the face of the panel: carbon, with a round window for every LED */
+      mask.width = canvas.width; mask.height = canvas.height;
+      var m = mask.getContext("2d"), px = canvas.width / cols, py = canvas.height / ROWS, rad = Math.min(px, py) * 0.39, x, y;
+      m.fillStyle = "#08090A"; m.fillRect(0, 0, mask.width, mask.height);
+      m.globalCompositeOperation = "destination-out"; m.beginPath();
+      for (x = 0; x < cols; x++) for (y = 0; y < ROWS; y++) { m.moveTo((x + 0.5) * px + rad, (y + 0.5) * py); m.arc((x + 0.5) * px, (y + 0.5) * py, rad, 0, 6.2832); }
+      m.fill(); m.globalCompositeOperation = "source-over";
+      shown = null;
+    }
+    /* the words YOUR LOGO HERE, 36 pixels tall, in the brand face */
+    function words() {
+      var text = "YOUR LOGO HERE", fam = '"Archivo","Helvetica Neue",Arial,sans-serif', c = sheet(8, ROWS), x = c.getContext("2d");
+      x.font = "700 extra-condensed 100px " + fam;
+      var cap = x.measureText("H").actualBoundingBoxAscent || 70, font = "700 extra-condensed " + (34 / cap * 100).toFixed(2) + "px " + fam;
+      function set() { x.font = font; try { x.letterSpacing = "1px"; } catch (e) { /* older browsers: no tracking */ } }
+      set(); c.width = Math.ceil(x.measureText(text).width) + 4; x = c.getContext("2d"); set();
+      x.fillStyle = "#fff"; x.textBaseline = "alphabetic"; x.fillText(text, 2, 35);
+      return { w: c.width, data: x.getImageData(0, 0, c.width, ROWS).data, gap: 34, tint: true };
+    }
+    /* any picture, brought down to 36 pixels tall. A flat background becomes the unlit panel, and ink too dark to be light is lit white. */
+    function picture(im) {
+      var w0 = im.naturalWidth, h0 = im.naturalHeight; if (!w0 || !h0) throw new Error("no size");
+      var k = Math.min(1, 1440 / Math.max(w0, h0)), sw = Math.max(1, Math.round(w0 * k)), sh = Math.max(1, Math.round(h0 * k));
+      var src = sheet(sw, sh), g = src.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(im, 0, 0, sw, sh);
+      while (sh > ROWS * 2) {                                  /* by halves, so a large logo stays clean */
+        var nw = Math.max(1, Math.round(sw / 2)), nh = Math.max(ROWS, Math.round(sh / 2)), nx = sheet(nw, nh), ng = nx.getContext("2d");
+        ng.imageSmoothingQuality = "high"; ng.drawImage(src, 0, 0, sw, sh, 0, 0, nw, nh); src = nx; sw = nw; sh = nh;
+      }
+      var tw = clamp(Math.round(w0 * ROWS / h0), 1, 1600), fin = sheet(tw, ROWS), fg = fin.getContext("2d");
+      fg.imageSmoothingQuality = "high"; fg.drawImage(src, 0, 0, sw, sh, 0, 0, tw, ROWS);
+      var d = fg.getImageData(0, 0, tw, ROWS).data, n = tw * ROWS, i, clear = 0, lum = 0, solid = 0, gap = 0;
+      function L(j) { return 0.299 * d[j] + 0.587 * d[j + 1] + 0.114 * d[j + 2]; }
+      function light(j) {                                      /* LEDs cannot show black: dark ink becomes white light, dull colour is brightened */
+        var mx = Math.max(d[j], d[j + 1], d[j + 2]), mn = Math.min(d[j], d[j + 1], d[j + 2]);
+        if (mx - mn < 46) { if (L(j) < 120) { d[j] = 244; d[j + 1] = 246; d[j + 2] = 248; } }
+        else if (mx < 250) { var up = 250 / mx; d[j] = Math.min(255, d[j] * up); d[j + 1] = Math.min(255, d[j + 1] * up); d[j + 2] = Math.min(255, d[j + 2] * up); }
+      }
+      for (i = 0; i < n; i++) { if (d[i * 4 + 3] < 40) clear++; else { lum += L(i * 4); solid++; } }
+      if (clear / n > 0.03) {                                  /* already cut out */
+        gap = 10;
+        if (solid && lum / solid < 70) for (i = 0; i < n; i++) light(i * 4);
+      } else {
+        var edge = [], x, y, br = 0, bg = 0, bb = 0, dev = 0;
+        for (x = 0; x < tw; x++) edge.push(x, (ROWS - 1) * tw + x);
+        for (y = 0; y < ROWS; y++) edge.push(y * tw, y * tw + tw - 1);
+        /* the background is whatever most of the border agrees on, even when the artwork touches an edge */
+        function mid(ch) { var v = edge.map(function (e) { return d[e * 4 + ch]; }).sort(function (p, q) { return p - q; }); return v[v.length >> 1]; }
+        br = mid(0); bg = mid(1); bb = mid(2);
+        edge.forEach(function (e) { if (Math.max(Math.abs(d[e * 4] - br), Math.abs(d[e * 4 + 1] - bg), Math.abs(d[e * 4 + 2] - bb)) < 16) dev++; });
+        if (dev / edge.length > 0.72) {                        /* a flat background: key it out */
+          var al = new Uint8Array(n), kept = 0, pale = Math.min(br, bg, bb) > 200, back = [br, bg, bb], ink = new Uint8ClampedArray(n * 3), c;
+          for (i = 0; i < n; i++) {
+            if (pale) {
+              /* on a pale ground an edge pixel is ink thinned with paper: follow it back to the ink, and how far that is gives its strength */
+              var far = Infinity;
+              for (c = 0; c < 3; c++) if (d[i * 4 + c] < back[c] - 3) far = Math.min(far, back[c] / (back[c] - d[i * 4 + c]));
+              var st = far === Infinity ? 0 : 1 / far; if (st < 0.07) st = 0;
+              al[i] = Math.min(1, st) * 255;
+              for (c = 0; c < 3; c++) ink[i * 3 + c] = st ? back[c] + (d[i * 4 + c] - back[c]) * far : 0;
+            } else {
+              var dist = Math.max(Math.abs(d[i * 4] - br), Math.abs(d[i * 4 + 1] - bg), Math.abs(d[i * 4 + 2] - bb));
+              al[i] = clamp((dist - 12) / 48, 0, 1) * 255;
+              for (c = 0; c < 3; c++) ink[i * 3 + c] = d[i * 4 + c];
+            }
+            if (al[i] > 64) kept++;
+          }
+          if (kept / n > 0.01) { for (i = 0; i < n; i++) { d[i * 4] = ink[i * 3]; d[i * 4 + 1] = ink[i * 3 + 1]; d[i * 4 + 2] = ink[i * 3 + 2]; d[i * 4 + 3] = al[i]; if (pale) light(i * 4); } gap = 10; }
+        }
+      }
+      return { w: tw, data: d, gap: gap, tint: false };
+    }
+    /* with motion switched off the strip stands still, so anything wider than the strip is fitted to it */
+    function fitted(a) {
+      if (!calm || a.w <= cols - 6) return a;
+      var full = sheet(a.w, ROWS); full.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(a.data), a.w, ROWS), 0, 0);
+      var w = cols - 6, h = Math.max(1, Math.round(ROWS * w / a.w)), out = sheet(w, ROWS), og = out.getContext("2d");
+      og.imageSmoothingQuality = "high"; og.drawImage(full, 0, 0, a.w, ROWS, 0, Math.round((ROWS - h) / 2), w, h);
+      return { w: w, data: og.getImageData(0, 0, w, ROWS).data, gap: a.gap, tint: a.tint };
+    }
+    function paint(now) {
+      if (!cols || !art) return;
+      if (!shown) shown = fitted(art);
+      if (t0 === null) t0 = now;
+      var a = shown, t = calm ? 0 : (now - t0) / 1000, period = a.w + a.gap, off = Math.floor(t * SPEED) - 3, src = a.data, d = pix.data;
+      var pass = t / PASS, head = (pass % 1) * (cols + 46) - 8, ink = INK[Math.floor(pass) % 3], x, y, o = 0;
+      if (calm) off = -Math.max(3, Math.floor((cols - a.w) / 2));
+      for (x = 0; x < cols; x++) {
+        sxs[x] = (((x + off) % period) + period) % period;
+        var dd = head - x; lvls[x] = calm ? 1 : (dd < 0 ? 0.8 : (dd < 6 ? 1 : 0.8 + 0.2 * Math.max(0, 1 - (dd - 6) / 28)));
+      }
+      for (y = 0; y < ROWS; y++) for (x = 0; x < cols; x++, o += 4) {
+        var sx = sxs[x], r = OFF[0], g = OFF[1], b = OFF[2];
+        if (sx < a.w && (!calm || (x + off >= 0 && x + off < a.w) || a.w <= cols - 6 && !a.tint)) {
+          var j = (y * a.w + sx) * 4, al = src[j + 3] / 255 * lvls[x];
+          r = Math.max(r, r + ((a.tint ? ink[0] : src[j]) - r) * al); g = Math.max(g, g + ((a.tint ? ink[1] : src[j + 1]) - g) * al); b = Math.max(b, b + ((a.tint ? ink[2] : src[j + 2]) - b) * al);
+        }
+        d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = 255;
+      }
+      lctx.putImageData(pix, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(low, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(mask, 0, 0);
+    }
+    function loop(now) { if (visible) paint(now); requestAnimationFrame(loop); }
+    function once() { requestAnimationFrame(paint); }
+    function show(a, name) {
+      art = a; shown = null; t0 = null; custom = !!name;
+      label.textContent = name || "Your logo here";
+      if (calm) once();
+    }
+    function tell(text, bad) { say.textContent = text; say.classList.toggle("err", !!bad); }
+    function load(file) {
+      if (!file) return;
+      var url = URL.createObjectURL(file), im = new Image(), bad = function () { URL.revokeObjectURL(url); tell("That file could not be read. Try a PNG, JPG or SVG.", true); };
+      im.onload = function () {
+        try {
+          var name = String(file.name || "Your image").replace(/\.[a-z0-9]+$/i, "").replace(/[_-]+/g, " ").trim().slice(0, 32) || "Your image";
+          show(picture(im), name); URL.revokeObjectURL(url);
+          tell("Showing " + name + " at 36 pixels tall, repeated along the strip. The image stays on your device.");
+        } catch (e) { bad(); }
+      };
+      im.onerror = bad; im.src = url;
+    }
+    pick.addEventListener("change", function () { load(pick.files && pick.files[0]); pick.value = ""; });
+    box.addEventListener("dragover", function (e) { e.preventDefault(); box.classList.add("drop"); });
+    box.addEventListener("dragleave", function () { box.classList.remove("drop"); });
+    box.addEventListener("drop", function (e) { e.preventDefault(); box.classList.remove("drop"); load(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
+
+    layout(); show(words());
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (!custom) show(words()); });
+    if (calm) once();
+    else {
+      if ("IntersectionObserver" in window) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }, { rootMargin: "10% 0px" }).observe(canvas);
+      requestAnimationFrame(loop);
+    }
+    var again; window.addEventListener("resize", function () { clearTimeout(again); again = setTimeout(function () { layout(); if (calm) once(); }, 150); });
+  }
+  document.querySelectorAll("[data-ledbox]").forEach(ledStrip);
 
   /* ---------- consultation: step one, a time; step two, the event ---------- */
   var consult = document.querySelector("form[data-consult]");
