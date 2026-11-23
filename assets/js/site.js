@@ -648,6 +648,12 @@
   }
   document.querySelectorAll("[data-ledbox]").forEach(ledStrip);
 
+  /* ---------- arriving from an event type, that type is already chosen ---------- */
+  try {
+    var wantType = new URLSearchParams(location.search).get("type"), typeSel = document.querySelector('select[name="Type of inquiry"]');
+    if (wantType && typeSel) Array.prototype.forEach.call(typeSel.options, function (o) { if (o.text === wantType) typeSel.value = o.value; });
+  } catch (e) { /* old browsers: the visitor chooses it themselves */ }
+
   /* ---------- consultation: step one, a time; step two, the event ---------- */
   var consult = document.querySelector("form[data-consult]");
   if (consult) {

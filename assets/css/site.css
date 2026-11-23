@@ -551,3 +551,18 @@ a.card{text-decoration:none;color:inherit}
 /* the LED line sits above the strip, on one line where there is room */
 .led .lead{max-width:none}
 .led{gap:clamp(22px,2.6vw,36px)}
+
+/* ---------- events: what we bring, by kind of event ---------- */
+.jump{display:flex;flex-wrap:wrap;gap:8px}
+.jump a.fbtn{display:inline-flex;align-items:center;text-decoration:none;background:rgba(8,9,10,.6)}
+.ev{scroll-margin-top:24px}
+.evgrid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(36px,6vw,120px);align-items:start}
+.evlists{gap:clamp(22px,2.4vw,36px)}
+.grp{display:flex;flex-direction:column;gap:14px;padding-top:18px;border-top:1px solid var(--line)}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px;border:1px solid var(--line);border-radius:22px;background:rgba(8,9,10,.6);font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--white);text-decoration:none;transition:border-color .25s,color .25s,transform .5s var(--ease)}
+.pill .ic{width:22px;margin-left:-4px;transition:color .25s}
+.pill:active{opacity:.75}
+@media (hover:hover){.pill:hover,.pill:focus-visible{border-color:var(--amber);color:var(--amber);transform:translateY(-2px)}.pill:hover .ic{color:var(--amber)}}
+@media (max-width:900px){.evgrid{grid-template-columns:1fr}}
+@media (max-width:600px){.pill{font-size:10.5px;letter-spacing:.12em;padding:0 14px}}
