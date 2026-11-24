@@ -566,3 +566,7 @@ a.card{text-decoration:none;color:inherit}
 @media (hover:hover){.pill:hover,.pill:focus-visible{border-color:var(--amber);color:var(--amber);transform:translateY(-2px)}.pill:hover .ic{color:var(--amber)}}
 @media (max-width:900px){.evgrid{grid-template-columns:1fr}}
 @media (max-width:600px){.pill{font-size:10.5px;letter-spacing:.12em;padding:0 14px}}
+
+/* the brand line under the hero headline, at a size that carries */
+.tagline{font-family:var(--display);font-stretch:125%;font-weight:300;font-size:clamp(26px,4.2vw,56px);line-height:1.08;letter-spacing:-.025em;color:var(--white);text-wrap:balance}
+.hero .foot{align-items:flex-end}
