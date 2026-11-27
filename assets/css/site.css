@@ -337,12 +337,8 @@ dialog.lb::backdrop{background:rgba(8,9,10,.98)}
 }
 
 /* ---------- graphic devices: corner marks, registration targets, numbered labels, barcode ---------- */
-main{counter-reset:sec}
 .reg{width:15px;height:15px;flex:none;color:var(--red)}
 .idx{display:inline-flex;align-items:center;gap:12px}
-.idx .n{color:var(--white)}
-.idx .n::before{counter-increment:sec;content:counter(sec,decimal-leading-zero)}
-.idx .n::after{content:"";display:inline-block;width:28px;height:1px;background:var(--line);vertical-align:middle;margin-left:12px}
 .frame{position:relative;--m:rgba(244,246,248,.6)}
 .frame::after{content:"";position:absolute;inset:-9px;pointer-events:none;background:
   linear-gradient(var(--m),var(--m)) left top/16px 1px no-repeat,linear-gradient(var(--m),var(--m)) left top/1px 16px no-repeat,
@@ -583,3 +579,7 @@ a.card{text-decoration:none;color:inherit}
 .rows.facts strong{font-size:clamp(22px,2.1vw,32px)}
 .rows.facts span{font-family:var(--sans);font-size:clamp(17px,1.4vw,21px);line-height:1.4;letter-spacing:0;text-transform:none;color:var(--soft);max-width:38ch;text-align:right}
 @media (max-width:700px){.rows.facts li,.rows.facts a{grid-template-columns:1fr}.rows.facts span{text-align:left;max-width:none}}
+
+/* marks, not numbers */
+.idx .ln{display:inline-block;width:28px;height:1px;background:var(--line);flex:none}
+.steps li .reg{width:18px;height:18px}
